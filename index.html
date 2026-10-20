@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guide Cambodge – Monuments & activités</title>
+<style>
+  :root {
+    --or: #c9972b;
+    --or-clair: #f3e3b5;
+    --vert: #1f5f3f;
+    --vert-clair: #e3efe7;
+    --bordeaux: #7a1f2b;
+    --fond: #fbf7ee;
+    --carte: #ffffff;
+    --texte: #2a2420;
+    --gris: #6d655c;
+    --bord: #e6dccb;
+    --alerte: #fff4e0;
+    --danger: #fde8ea;
+    --rayon: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--fond);
+    color: var(--texte);
+    line-height: 1.5;
+  }
+  a { color: var(--vert); }
+  .wrap { max-width: 1200px; margin: 0 auto; padding-inline: 16px; }
+
+  /* En-tête */
+  header {
+    background: linear-gradient(135deg, var(--bordeaux), #4f121b 60%, var(--vert));
+    color: #fff;
+    padding-block: 32px 24px;
+  }
+  header h1 { margin: 0 0 6px; font-size: clamp(1.6rem, 4vw, 2.4rem); }
+  header h1 span { color: var(--or); }
+  header p { margin: 4px 0; opacity: .92; }
+  .badge-maj {
+    display: inline-block; margin-top: 10px; padding: 6px 12px;
+    background: var(--or); color: #2a1a00; border-radius: 999px;
+    font-weight: 600; font-size: .9rem;
+  }
+  nav.ancres { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+  nav.ancres a {
+    color: #fff; text-decoration: none; border: 1px solid rgba(255,255,255,.4);
+    padding: 5px 12px; border-radius: 999px; font-size: .9rem;
+  }
+  nav.ancres a:hover { background: rgba(255,255,255,.15); }
+
+  .bandeau-alerte {
+    background: var(--danger); border-left: 5px solid var(--bordeaux);
+    padding: 12px 16px; margin: 18px 0 0; border-radius: 8px; font-size: .95rem;
+  }
+
+  /* Barre d'outils */
+  .outils {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(251,247,238,.97); backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--bord);
+    padding-block: 12px;
+  }
+  .ligne { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .ligne + .ligne { margin-top: 10px; }
+  input[type=search], select {
+    font: inherit; padding: 9px 12px; border: 1px solid var(--bord);
+    border-radius: 10px; background: #fff; color: var(--texte);
+  }
+  input[type=search] { flex: 1 1 240px; min-width: 0; }
+  .chip {
+    font: inherit; font-size: .9rem; cursor: pointer;
+    padding: 7px 13px; border-radius: 999px;
+    border: 1px solid var(--bord); background: #fff; color: var(--texte);
+  }
+  .chip[aria-pressed=true] { background: var(--vert); color: #fff; border-color: var(--vert); }
+  .chip.liste[aria-pressed=true] { background: var(--or); color: #2a1a00; border-color: var(--or); }
+  .compteur { font-size: .9rem; color: var(--gris); margin-left: auto; }
+
+  /* Grille */
+  main { padding-block: 22px 40px; }
+  h2 { color: var(--bordeaux); font-size: 1.5rem; margin: 28px 0 12px; }
+  .grille {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+  }
+  .fiche {
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 16px; display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 1px 3px rgba(60,40,10,.06);
+    transition: box-shadow .2s;
+  }
+  .fiche:hover { box-shadow: 0 6px 18px rgba(60,40,10,.12); }
+  .fiche.cochee { border-color: var(--or); box-shadow: 0 0 0 2px var(--or-clair); }
+  .fiche-tete { display: flex; gap: 12px; align-items: flex-start; }
+  .emoji {
+    font-size: 2rem; width: 56px; height: 56px; flex: none;
+    display: grid; place-items: center; border-radius: 12px;
+    background: var(--vert-clair);
+  }
+  .fiche h3 { margin: 0; font-size: 1.12rem; }
+  .lieu { color: var(--gris); font-size: .88rem; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    font-size: .75rem; padding: 2px 9px; border-radius: 999px;
+    background: var(--or-clair); color: #5a4100;
+  }
+  .desc { margin: 0; font-size: .95rem; }
+  dl.infos { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: .9rem; }
+  dl.infos dt { color: var(--gris); white-space: nowrap; }
+  dl.infos dd { margin: 0; }
+  .etoiles { color: var(--or); letter-spacing: 1px; }
+  .note {
+    font-size: .85rem; padding: 8px 10px; border-radius: 8px;
+    background: var(--alerte); border-left: 4px solid var(--or);
+  }
+  .note.danger { background: var(--danger); border-left-color: var(--bordeaux); }
+  .pied-fiche {
+    margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--bord);
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    font-size: .85rem;
+  }
+  .pied-fiche label { display: flex; gap: 6px; align-items: center; cursor: pointer; font-weight: 600; color: var(--bordeaux); }
+  .pied-fiche input { width: 18px; height: 18px; accent-color: var(--bordeaux); }
+  .liens { display: flex; gap: 12px; flex-wrap: wrap; }
+  .vide { text-align: center; color: var(--gris); padding: 40px 0; }
+
+  /* Conseils */
+  details {
+    background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+    padding: 4px 16px; margin-bottom: 10px;
+  }
+  summary { cursor: pointer; font-weight: 600; padding: 10px 0; color: var(--vert); }
+  details ul { margin-top: 0; padding-left: 20px; }
+  details li { margin-bottom: 6px; }
+  .src { font-size: .82rem; color: var(--gris); }
+
+  footer { background: var(--vert); color: #eef5f0; padding-block: 24px; font-size: .9rem; }
+  footer a { color: var(--or-clair); }
+
+  @media (max-width: 600px) {
+    .compteur { margin-left: 0; width: 100%; }
+    select { flex: 1 1 45%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>🇰🇭 Guide <span>Cambodge</span></h1>
+    <p>Monuments, activités et conseils pratiques pour préparer votre voyage.</p>
+    <span class="badge-maj">📅 Dernière vérification des informations : <span id="date-maj"></span></span>
+    <p style="font-size:.85rem;margin-top:10px">Les tarifs et horaires changent souvent : vérifiez toujours auprès de la source indiquée sur chaque fiche avant de partir. Les mentions « ⚠️ » signalent une information incertaine ou contradictoire selon les sources.</p>
+    <nav class="ancres">
+      <a href="#lieux">📍 Lieux</a>
+      <a href="#conseils">🧭 Conseils pratiques</a>
+      <a href="#sources">📚 Sources</a>
+    </nav>
+    <div class="bandeau-alerte" style="color:var(--texte)">
+      <strong>⚠️ Sécurité – frontière thaïlandaise :</strong> à la suite du conflit armé de 2025 (cessez-le-feu fragile signé le 27/12/2025), les États-Unis (avis du 15/09/2026) et l'Australie déconseillent de se rendre à moins de <strong>50 km de la frontière Cambodge–Thaïlande</strong>. Les passages terrestres avec la Thaïlande sont signalés comme fermés. Le temple de Preah Vihear est fermé aux visiteurs. Siem Reap, Phnom Penh et la côte sud ne sont pas dans cette zone.
+      <a href="https://travel.state.gov/en/international-travel/travel-advisories/cambodia.html" target="_blank" rel="noopener">Source</a>
+    </div>
+  </div>
+</header>
+
+<div class="outils">
+  <div class="wrap">
+    <div class="ligne">
+      <input type="search" id="recherche" placeholder="🔎 Rechercher (ex : temple, plage, poivre, Siem Reap…)" aria-label="Recherche par mot-clé">
+      <select id="region" aria-label="Filtrer par région"></select>
+      <select id="tri" aria-label="Trier">
+        <option value="">Tri : par défaut</option>
+        <option value="prix-asc">Prix croissant</option>
+        <option value="prix-desc">Prix décroissant</option>
+        <option value="duree-asc">Durée croissante</option>
+        <option value="duree-desc">Durée décroissante</option>
+        <option value="interet">Intérêt (★)</option>
+      </select>
+    </div>
+    <div class="ligne" id="categories">
+      <button class="chip liste" id="btn-liste" aria-pressed="false">✅ Ma liste</button>
+      <span class="compteur" id="compteur"></span>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <h2 id="lieux">📍 Lieux à voir et activités</h2>
+  <div class="grille" id="grille"></div>
+  <p class="vide" id="vide" hidden>Aucun lieu ne correspond à vos filtres.</p>
+
+  <h2 id="conseils">🧭 Conseils pratiques</h2>
+
+  <details open>
+    <summary>🌤️ Meilleure saison</summary>
+    <ul>
+      <li><strong>Saison sèche et « fraîche » (novembre → février)</strong> : la plus agréable, mais aussi la plus fréquentée et la plus chère (fêtes de fin d'année, Nouvel An chinois).</li>
+      <li><strong>Saison chaude (mars → mai)</strong> : avril est le mois le plus chaud (environ 38 °C).</li>
+      <li><strong>Mousson (mai → octobre)</strong> : pluies surtout l'après-midi, les plus fortes en septembre-octobre. Il y a moins de monde, les paysages sont verts et les douves d'Angkor sont pleines.</li>
+      <li>La saison des typhons en Asie va de juin à novembre (alerte France Diplomatie du 02/09/2026).</li>
+      <li>Conseil : pour la météo, visez mi-novembre → février. Pour éviter la foule, visez début novembre, mai ou octobre.</li>
+    </ul>
+    <p class="src">Sources : <a href="https://www.lonelyplanet.com/articles/best-time-to-visit-cambodia" target="_blank" rel="noopener">Lonely Planet</a>, <a href="https://www.travelfish.org/weather/cambodia" target="_blank" rel="noopener">Travelfish</a>, <a href="https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/cambodge/" target="_blank" rel="noopener">France Diplomatie</a></p>
+  </details>
+
+  <details>
+    <summary>🛂 Visa et formalités</summary>
+    <ul>
+      <li><strong>e-Visa touristique (type T)</strong> : <strong>30 $</strong> sur le site officiel <a href="https://www.evisa.gov.kh" target="_blank" rel="noopener">evisa.gov.kh</a>. Il est à entrée unique, valable 3 mois à partir de son émission, pour un séjour d'un mois maximum. Le délai est d'environ 3 jours ouvrés. ⚠️ Certaines sources mentionnent environ 36 $ avec des frais de traitement : vérifiez le montant exact sur le site officiel.</li>
+      <li><strong>Visa à l'arrivée</strong> : aussi possible dans les aéroports internationaux d'après plusieurs guides (prévoir des dollars en espèces et une photo).</li>
+      <li><strong>e-Arrival Card</strong> : <strong>gratuite</strong>, à remplir dans les 7 jours avant l'arrivée ou à l'arrivée sur <a href="https://arrival.gov.kh" target="_blank" rel="noopener">arrival.gov.kh</a>.</li>
+      <li>⚠️ <strong>Attention aux faux sites</strong> qui ressemblent aux sites officiels et facturent 50 à 100 $ pour la même démarche.</li>
+      <li>Passeport valable au moins 6 mois après l'entrée (règle courante : vérifiez sur France Diplomatie, rubrique « Entrée / Séjour »).</li>
+    </ul>
+    <p class="src">Sources : <a href="https://tourismcambodia.org/guides/cambodia-visa/" target="_blank" rel="noopener">tourismcambodia.org</a>, <a href="https://en.wikipedia.org/wiki/Visa_policy_of_Cambodia" target="_blank" rel="noopener">Visa policy of Cambodia</a>, <a href="https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/cambodge/" target="_blank" rel="noopener">France Diplomatie</a></p>
+  </details>
+
+  <details>
+    <summary>💵 Monnaie : riel ou dollar</summary>
+    <ul>
+      <li>Deux monnaies circulent en parallèle. Les prix touristiques (hôtels, excursions, restaurants, tickets) sont en <strong>dollars US</strong>, et la monnaie de moins de 1 $ est rendue en <strong>riels (KHR)</strong>.</li>
+      <li>Les commerçants appliquent la règle <strong>1 $ ≈ 4 000 riels</strong>. Le taux réel était d'environ 4 065 KHR pour 1 $ mi-octobre 2026 (Wise).</li>
+      <li>Apportez des <strong>billets en dollars propres et récents</strong> (non déchirés, non tachés), de préférence en coupures de 10 $ et 20 $ : les billets abîmés sont souvent refusés.</li>
+      <li>Les riels ne s'achètent pas avant le départ et ne se changent pas au retour.</li>
+      <li>Distributeurs : comptez 4 à 6 $ de frais par retrait. Les riels sont pratiques pour les marchés, les tuk-tuks et les zones rurales.</li>
+    </ul>
+    <p class="src">Sources : <a href="https://tourismcambodia.org/guides/costs-and-money/" target="_blank" rel="noopener">tourismcambodia.org</a>, <a href="https://wise.com/us/currency-converter/usd-to-khr-rate/history" target="_blank" rel="noopener">Wise</a></p>
+  </details>
+
+  <details>
+    <summary>🚌 Transports</summary>
+    <ul>
+      <li><strong>Phnom Penh</strong> : le nouvel <strong>aéroport international Techo (KTI)</strong> a remplacé l'ancien aéroport (PNH) en septembre 2025. Il se trouve à environ 20-30 km au sud du centre, soit 30 à 60 min de route. Il existe un bus express (environ 0,40 $, mais 1 h 30 à 2 h de trajet) et des VTC (environ 10-20 $).</li>
+      <li><strong>Siem Reap</strong> : desservie par le nouvel aéroport Siem Reap–Angkor (SAI), situé loin du centre. Prévoyez une navette ou un taxi.</li>
+      <li><strong>En ville</strong> : les applications <strong>Grab</strong> et <strong>PassApp</strong> affichent le prix à l'avance, ce qui évite les négociations. Sinon, fixez toujours le prix du tuk-tuk avant de monter.</li>
+      <li><strong>Entre les villes</strong> : bus et minivans (Giant Ibis, Sorya…). Achetez vos billets auprès de la compagnie ou d'un site reconnu (faux billets signalés à Kampot).</li>
+      <li><strong>Îles</strong> : bateaux rapides depuis Sihanoukville (voir la fiche Koh Rong).</li>
+      <li>⚠️ <strong>Frontière terrestre avec la Thaïlande</strong> : signalée fermée en 2026. Les vols entre les deux pays fonctionnent.</li>
+    </ul>
+    <p class="src">Sources : <a href="https://en.wikipedia.org/wiki/Techo_International_Airport" target="_blank" rel="noopener">Techo International Airport</a>, <a href="https://cambodiakingdom.com/getting-here/airports/techo" target="_blank" rel="noopener">cambodiakingdom.com</a></p>
+  </details>
+
+  <details>
+    <summary>👕 Tenue vestimentaire</summary>
+    <ul>
+      <li>Dans les temples, au Palais Royal et dans les pagodes : <strong>épaules et genoux couverts</strong>, pas de débardeur ni de short court.</li>
+      <li>Un châle posé sur les épaules est <strong>souvent refusé</strong> : prévoyez un vrai haut à manches.</li>
+      <li>Au <strong>Bakan</strong> (sommet d'Angkor Wat), le contrôle est très strict. Ce niveau ferme certains jours de fêtes bouddhistes (⚠️ dates non publiées, à vérifier sur place). Retirez votre chapeau.</li>
+      <li>Retirez vos chaussures avant d'entrer dans une pagode. Prévoyez des chaussures fermées pour les temples en ruine (Beng Mealea, Ta Prohm).</li>
+      <li>Emportez crème solaire, chapeau et eau : il fait très chaud entre 11 h et 15 h.</li>
+    </ul>
+    <p class="src">Sources : <a href="https://angkorwat-guide.com/plan-your-visit/dress-code/" target="_blank" rel="noopener">angkorwat-guide.com</a>, <a href="https://www.royalpalacephnompenh.com/en/" target="_blank" rel="noopener">royalpalacephnompenh.com</a></p>
+  </details>
+
+  <details>
+    <summary>🚨 Arnaques à éviter</summary>
+    <ul>
+      <li><strong>Faux sites d'e-visa</strong> : passez uniquement par evisa.gov.kh et arrival.gov.kh.</li>
+      <li><strong>Billets d'Angkor</strong> : achetez-les uniquement auprès d'Angkor Enterprise (site officiel, application ou guichet officiel). Les agences vendent des excursions, mais pas le pass lui-même.</li>
+      <li><strong>Tuk-tuk</strong> : prix modifié pendant la course, détour par des boutiques ou hôtels qui versent une commission, faux « votre hôtel est fermé ». Utilisez Grab ou PassApp, ou fixez le prix à l'avance.</li>
+      <li><strong>Arnaque au lait en poudre</strong> (Siem Reap) : on vous demande d'acheter du lait pour un bébé dans une boutique précise, à un prix très élevé. Le lait est ensuite revendu à la boutique.</li>
+      <li><strong>Tourisme d'orphelinat</strong> : à éviter. La plupart des enfants dans ces structures ont des parents, et les visites entretiennent le système.</li>
+      <li>Méfiez-vous aussi des pierres précieuses vendues comme « affaires », des boissons droguées dans les lieux de fête et du piratage de carte bancaire.</li>
+    </ul>
+    <p class="src">Sources : <a href="https://www.atlas-guide.com/resources/scams/cambodia" target="_blank" rel="noopener">Atlas Guide 2026</a>, <a href="https://www.asiatouradvisor.com/get-inspired/vietnam/scams-in-vietnam-and-cambodia/" target="_blank" rel="noopener">Asia Tour Advisor</a></p>
+  </details>
+
+  <details>
+    <summary>🛡️ Sécurité et santé</summary>
+    <ul>
+      <li>Les États-Unis classent le Cambodge au <strong>niveau 2</strong> (« vigilance accrue ») et la bande des 50 km le long de la frontière thaïlandaise au <strong>niveau 4</strong> (« ne pas s'y rendre »), selon l'avis du 15/09/2026.</li>
+      <li><strong>Mines et munitions non explosées</strong> dans plusieurs provinces (Battambang, Siem Reap, Pailin…) : ne quittez pas les sentiers balisés.</li>
+      <li>Petite délinquance (vols à l'arraché) signalée à Phnom Penh : gardez votre téléphone et votre sac du côté opposé à la route.</li>
+      <li>Une <strong>assurance voyage avec rapatriement</strong> est indispensable (et obligatoire pour certaines activités, comme l'Elephant Valley Project).</li>
+      <li>Consultez la page <a href="https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/cambodge/" target="_blank" rel="noopener">France Diplomatie – Cambodge</a> (mise à jour le 10/09/2026) et inscrivez-vous sur Ariane.</li>
+    </ul>
+    <p class="src">Sources : <a href="https://travel.state.gov/en/international-travel/travel-advisories/cambodia.html" target="_blank" rel="noopener">travel.state.gov</a>, <a href="https://www.smartraveller.gov.au/destinations/asia/cambodia" target="_blank" rel="noopener">Smartraveller (Australie)</a></p>
+  </details>
+
+  <h2 id="sources">📚 À propos des sources</h2>
+  <p>Chaque fiche indique sa source principale. Les sites officiels ont été privilégiés quand ils publient l'information : <a href="https://www.angkorenterprise.gov.kh/en/available-tickets" target="_blank" rel="noopener">Angkor Enterprise</a> (billets d'Angkor, de Koh Ker et de Beng Mealea), <a href="https://tuolsleng.gov.kh/en/museum/" target="_blank" rel="noopener">Musée Tuol Sleng</a>, <a href="https://www.cambodiamuseum.info/en_information_visitors.html" target="_blank" rel="noopener">Musée national</a>, <a href="https://laplantation.com/en/visit-us/our-farm-kampot/" target="_blank" rel="noopener">La Plantation</a>, <a href="https://www.elephantvalleyproject.org/visit-options" target="_blank" rel="noopener">Elephant Valley Project</a>. Pour les autres lieux, ce sont des guides récents (2025-2026), et la fiche le signale par « ⚠️ ».</p>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Guide personnel de préparation de voyage. Aucune photo protégée n'est utilisée : les illustrations sont des emojis. Votre liste « à faire » est enregistrée uniquement dans ce navigateur.</p>
+    <p><button class="chip" id="reset" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.5)">🗑️ Vider ma liste</button> <span id="reset-confirm" hidden> Sûr ? <button class="chip" id="reset-oui">Oui, vider</button> <button class="chip" id="reset-non">Annuler</button></span></p>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   DONNÉES — modifiez ici pour mettre à jour le guide.
+   prixNum : prix en $ utilisé pour le tri (0 = gratuit)
+   dureeH  : durée conseillée en heures utilisée pour le tri
+   interet : 1 à 5 étoiles
+   note    : remarque affichée en encadré (facultatif)
+   danger  : true pour afficher la note en rouge
+   maps    : texte recherché dans Google Maps
+   ===================================================================== */
+const DATE_VERIFICATION = "20 octobre 2026";
+
+const CATEGORIES = ["Monuments", "Nature", "Culture", "Gastronomie", "Plage"];
+
+const SRC_ANGKOR = { label: "Angkor Enterprise (officiel)", url: "https://www.angkorenterprise.gov.kh/en/available-tickets" };
+const PASS_ANGKOR = "Inclus dans l'Angkor Pass : 1 jour 37 $ · 3 jours 62 $ · 7 jours 72 $";
+const HORAIRES_ANGKOR = "Parc archéologique : 5 h 00 – 18 h 30 (officiel). ⚠️ Certains temples ferment plus tôt (souvent vers 17 h 30 – 18 h).";
+
+const LIEUX = [
+  // ---------- MONUMENTS : ANGKOR ----------
+  {
+    nom: "Angkor Wat", emoji: "🛕", ville: "Siem Reap", region: "Siem Reap & Angkor",
+    cats: ["Monuments", "Culture"],
+    desc: "Plus grand monument religieux du monde (XIIe siècle), dédié à Vishnou puis devenu bouddhiste. Bas-reliefs de plus de 600 m et tours en bouton de lotus.",
+    prix: PASS_ANGKOR + ". L'Angkor Pass 1 jour est valable le jour même, le 3 jours dans les 7 jours suivant la première utilisation, le 7 jours dans les 30 jours. Gratuit pour les moins de 12 ans (passeport demandé).",
+    prixNum: 37, horaires: HORAIRES_ANGKOR,
+    duree: "3 – 4 h", dureeH: 3.5,
+    moment: "Lever du soleil (arriver vers 5 h), puis visite avant la chaleur",
+    interet: 5,
+    acces: "Billets uniquement auprès d'Angkor Enterprise (site, application ou guichet). Épaules et genoux couverts. Le Bakan (sommet) est très strict sur la tenue et ferme certains jours bouddhistes.",
+    note: "⚠️ Les jours de fermeture du Bakan ne sont pas publiés : vérifiez sur place.",
+    source: SRC_ANGKOR, maps: "Angkor Wat, Siem Reap"
+  },
+  {
+    nom: "Angkor Thom & le Bayon", emoji: "🗿", ville: "Siem Reap", region: "Siem Reap & Angkor",
+    cats: ["Monuments", "Culture"],
+    desc: "Ancienne capitale royale fortifiée de Jayavarman VII. Au centre, le Bayon et ses 200 visages souriants. À voir aussi : la porte Sud, le Baphuon et la terrasse des Éléphants.",
+    prix: PASS_ANGKOR, prixNum: 37, horaires: HORAIRES_ANGKOR,
+    duree: "2 – 3 h", dureeH: 2.5,
+    moment: "Tôt le matin (lumière douce sur les visages, peu de monde)",
+    interet: 5,
+    acces: "Même pass qu'Angkor Wat. Tenue correcte exigée.",
+    source: SRC_ANGKOR, maps: "Bayon Temple, Angkor Thom"
+  },
+  {
+    nom: "Ta Prohm", emoji: "🌳", ville: "Siem Reap", region: "Siem Reap & Angkor",
+    cats: ["Monuments", "Nature"],
+    desc: "Le temple « envahi par la jungle » : fromagers et banians enserrent les galeries. Rendu célèbre par le film Tomb Raider.",
+    prix: PASS_ANGKOR, prixNum: 37, horaires: HORAIRES_ANGKOR,
+    duree: "1 – 1 h 30", dureeH: 1.25,
+    moment: "Dès l'ouverture ou en fin de journée (très fréquenté vers 9 h – 11 h)",
+    interet: 5,
+    acces: "Même pass. Passerelles en bois : respectez les zones fermées.",
+    source: SRC_ANGKOR, maps: "Ta Prohm, Siem Reap"
+  },
+  {
+    nom: "Preah Khan", emoji: "🏯", ville: "Siem Reap", region: "Siem Reap & Angkor",
+    cats: ["Monuments"],
+    desc: "Vaste temple-monastère du XIIe siècle aux longs couloirs en enfilade, partiellement envahi par la végétation. Plus calme que Ta Prohm.",
+    prix: PASS_ANGKOR, prixNum: 37, horaires: HORAIRES_ANGKOR,
+    duree: "1 – 1 h 30", dureeH: 1.25,
+    moment: "Matin ou après-midi (le « grand circuit »)",
+    interet: 4,
+    acces: "Même pass. Tenue correcte.",
+    source: SRC_ANGKOR, maps: "Preah Khan Temple, Siem Reap"
+  },
+  {
+    nom: "Banteay Srei", emoji: "🌸", ville: "Siem Reap (≈ 35-40 km)", region: "Siem Reap & Angkor",
+    cats: ["Monuments", "Culture"],
+    desc: "« La citadelle des femmes » : petit temple en grès rose aux sculptures d'une finesse exceptionnelle (Xe siècle).",
+    prix: PASS_ANGKOR, prixNum: 37,
+    horaires: "⚠️ Horaires spécifiques non confirmés. Horaires généraux du parc : 5 h – 18 h 30.",
+    duree: "1 h (+ 1 h de route)", dureeH: 2,
+    moment: "Tôt le matin (lumière rasante sur le grès rose, avant les groupes)",
+    interet: 5,
+    acces: "Même pass. Combinable avec Kbal Spean (billet séparé de 5 $ selon le site officiel).",
+    note: "⚠️ Horaires propres au site non confirmés par une source officielle.",
+    source: SRC_ANGKOR, maps: "Banteay Srei, Siem Reap"
+  },
+  {
+    nom: "Beng Mealea", emoji: "🧗", ville: "Siem Reap (≈ 65-70 km)", region: "Siem Reap & Angkor",
+    cats: ["Monuments", "Nature"],
+    desc: "Immense temple en ruine laissé à la jungle, avec des blocs effondrés et des passerelles. Ambiance d'aventure, beaucoup moins de monde qu'à Angkor.",
+    prix: "10 $ (billet séparé, non inclus dans l'Angkor Pass)", prixNum: 10,
+    horaires: "6 h 00 – 18 h 30 (officiel)",
+    duree: "1 h 30 – 2 h (+ 1 h 30 de route)", dureeH: 3,
+    moment: "Matin (combinable avec Phnom Kulen ou Koh Ker)",
+    interet: 4,
+    acces: "Billet séparé Angkor Enterprise. Prévoyez de bonnes chaussures.",
+    note: "Certains guides disent encore que le site est inclus dans l'Angkor Pass : le site officiel indique un billet séparé de 10 $.",
+    source: SRC_ANGKOR, maps: "Beng Mealea, Siem Reap"
+  },
+  {
+    nom: "Phnom Kulen", emoji: "💧", ville: "Siem Reap (≈ 50 km)", region: "Siem Reap & Angkor",
+    cats: ["Nature", "Monuments"],
+    desc: "Montagne sacrée, berceau de l'empire khmer (802). Cascade, rivière aux mille lingas sculptés dans le lit et grand Bouddha couché.",
+    prix: "≈ 20 $ (non inclus dans l'Angkor Pass)", prixNum: 20,
+    horaires: "⚠️ Route d'accès en sens unique selon des créneaux horaires (montée le matin).",
+    duree: "Demi-journée à journée", dureeH: 5,
+    moment: "Le matin (montée avant midi)",
+    interet: 4,
+    acces: "Paiement en espèces conseillé. La route est régulée : passez par un chauffeur ou une excursion.",
+    note: "⚠️ Tarif issu de guides récents, pas d'une source officielle. Enfants : souvent plein tarif.",
+    source: { label: "siemreap-trip.com (2026)", url: "https://www.siemreap-trip.com/destinations/phnom-kulen/" },
+    maps: "Phnom Kulen National Park"
+  },
+  {
+    nom: "Koh Ker", emoji: "🔺", ville: "Province de Preah Vihear (≈ 120 km de Siem Reap)", region: "Nord & centre",
+    cats: ["Monuments"],
+    desc: "Capitale éphémère du Xe siècle perdue dans la forêt, avec la pyramide à sept niveaux du Prasat Thom. Sites très peu fréquentés.",
+    prix: "15 $ (billet séparé)", prixNum: 15,
+    horaires: "6 h 00 – 18 h 30 (officiel)",
+    duree: "2 – 3 h (+ 2 h 30 de route)", dureeH: 5,
+    moment: "Journée complète depuis Siem Reap, souvent avec Beng Mealea",
+    interet: 3,
+    acces: "Billet Angkor Enterprise.",
+    note: "⚠️ Province de Preah Vihear, proche de la zone frontalière déconseillée. Aucune source ne confirme que le site est ouvert actuellement : vérifiez avant de partir.",
+    danger: true,
+    source: SRC_ANGKOR, maps: "Koh Ker, Preah Vihear"
+  },
+  {
+    nom: "Temple de Preah Vihear", emoji: "⛰️", ville: "Province de Preah Vihear (frontière thaïlandaise)", region: "Nord & centre",
+    cats: ["Monuments"],
+    desc: "Temple inscrit à l'UNESCO, perché sur une falaise des monts Dângrêk, avec une vue spectaculaire sur la plaine.",
+    prix: "Non applicable : site fermé", prixNum: 0,
+    horaires: "🚫 FERMÉ aux visiteurs étrangers (2026), sans date de réouverture",
+    duree: "—", dureeH: 0,
+    moment: "—",
+    interet: 5,
+    acces: "Site fermé à la suite du conflit frontalier de 2025. Seuls les militaires et les équipes de conservation y ont accès.",
+    note: "🚫 Fermé en 2026 et situé dans la zone des 50 km déconseillée par les États-Unis et l'Australie. À ne pas inclure dans l'itinéraire.",
+    danger: true,
+    source: { label: "Wikivoyage / avis US 15/09/2026", url: "https://en.wikivoyage.org/wiki/Preah_Vihear" },
+    maps: "Preah Vihear Temple"
+  },
+  {
+    nom: "Sambor Prei Kuk", emoji: "🧱", ville: "Kampong Thom", region: "Nord & centre",
+    cats: ["Monuments", "Culture"],
+    desc: "Ancienne Ishanapura, capitale pré-angkorienne (VIIe siècle) classée à l'UNESCO, avec des temples en brique dans la forêt. Étape idéale entre Phnom Penh et Siem Reap.",
+    prix: "≈ 10 $ (non inclus dans l'Angkor Pass). Guide local en option (≈ 6-10 $).", prixNum: 10,
+    horaires: "≈ 7 h 30 – 17 h 30",
+    duree: "2 – 3 h", dureeH: 2.5,
+    moment: "Matin ou fin d'après-midi",
+    interet: 4,
+    acces: "Billet sur place.",
+    note: "⚠️ Tarif et horaires issus de guides, sans source officielle. Une source de 2025 indique 5 $.",
+    source: { label: "bestpricetravel.com", url: "https://www.bestpricetravel.com/travel-guide/sambor-prei-kuk.html" },
+    maps: "Sambor Prei Kuk"
+  },
+
+  // ---------- PHNOM PENH ----------
+  {
+    nom: "Palais Royal & Pagode d'Argent", emoji: "👑", ville: "Phnom Penh", region: "Phnom Penh",
+    cats: ["Monuments", "Culture"],
+    desc: "Résidence du roi, avec la salle du Trône et ses toits dorés. La Pagode d'Argent abrite un sol de 5 000 dalles d'argent et un Bouddha d'émeraude.",
+    prix: "10 $ (espèces, sur place)", prixNum: 10,
+    horaires: "8 h – 11 h et 14 h – 17 h (fermé entre midi et 14 h). Fermetures possibles lors des cérémonies royales.",
+    duree: "1 h 30 – 2 h", dureeH: 1.75,
+    moment: "8 h à l'ouverture",
+    interet: 5,
+    acces: "Tenue stricte : épaules et genoux couverts (un châle peut être refusé, mais des sarongs sont prêtés à l'entrée). Photos interdites dans la salle du Trône et la Pagode d'Argent.",
+    note: "⚠️ L'heure de fermeture varie selon les sources (16 h ou 17 h) : fiez-vous à l'affichage à l'entrée.",
+    source: { label: "royalpalacephnompenh.com (2026)", url: "https://www.royalpalacephnompenh.com/en/" },
+    maps: "Royal Palace Phnom Penh"
+  },
+  {
+    nom: "Musée national du Cambodge", emoji: "🏛️", ville: "Phnom Penh", region: "Phnom Penh",
+    cats: ["Culture"],
+    desc: "La plus belle collection d'art khmer au monde, dans un bâtiment rouge traditionnel autour d'un jardin. Idéal avant ou après Angkor.",
+    prix: "10 $ (adultes étrangers), 5 $ (10-17 ans). Audioguide ≈ 5 $.", prixNum: 10,
+    horaires: "8 h – 17 h tous les jours (dernier billet à 16 h 30)",
+    duree: "1 h 30 – 2 h", dureeH: 1.75,
+    moment: "En fin de matinée ou pendant la pause de midi du Palais Royal voisin",
+    interet: 4,
+    acces: "Billet sur place, à l'angle des rues 13 et 178.",
+    source: { label: "Musée national (officiel)", url: "https://www.cambodiamuseum.info/en_information_visitors.html" },
+    maps: "National Museum of Cambodia"
+  },
+  {
+    nom: "Musée du génocide Tuol Sleng (S-21)", emoji: "🕯️", ville: "Phnom Penh", region: "Phnom Penh",
+    cats: ["Culture"],
+    desc: "Ancien lycée transformé en prison par les Khmers rouges. Un lieu de mémoire bouleversant et indispensable pour comprendre le pays.",
+    prix: "5 $ (adultes étrangers), 3 $ (10-18 ans). Audioguide 5 $ (disponible en français).", prixNum: 5,
+    horaires: "8 h – 17 h tous les jours",
+    duree: "2 – 3 h", dureeH: 2.5,
+    moment: "Le matin, avec Choeung Ek le même jour",
+    interet: 5,
+    acces: "Espèces uniquement (dollars ou riels). Tenue et attitude respectueuses, silence.",
+    source: { label: "Tuol Sleng (officiel)", url: "https://tuolsleng.gov.kh/en/museum/" },
+    maps: "Tuol Sleng Genocide Museum"
+  },
+  {
+    nom: "Choeung Ek (Killing Fields)", emoji: "🕊️", ville: "Phnom Penh (≈ 15 km)", region: "Phnom Penh",
+    cats: ["Culture"],
+    desc: "Principal « champ de la mort » des Khmers rouges, avec son stupa mémorial. Le parcours avec audioguide est sobre et très émouvant.",
+    prix: "≈ 6 $ (audioguide inclus)", prixNum: 6,
+    horaires: "≈ 7 h 30 – 17 h 30",
+    duree: "1 h 30 – 2 h", dureeH: 1.75,
+    moment: "Matin (moins chaud, plus calme)",
+    interet: 5,
+    acces: "Espèces conseillées. Tuk-tuk ou Grab depuis le centre.",
+    note: "⚠️ Pas de grille tarifaire officielle trouvée. Le prix de 6 $ est le plus cité dans les guides de 2026.",
+    source: { label: "timetravelturtle.com (2026)", url: "https://www.timetravelturtle.com/cambodia/phnom-penh-killing-fields-tour/" },
+    maps: "Choeung Ek Genocidal Center"
+  },
+  {
+    nom: "Wat Phnom", emoji: "🙏", ville: "Phnom Penh", region: "Phnom Penh",
+    cats: ["Monuments", "Culture"],
+    desc: "Pagode sur la seule colline de la ville, qui a donné son nom à Phnom Penh. Lieu de prières et d'offrandes très vivant.",
+    prix: "≈ 1 $ (étrangers)", prixNum: 1,
+    horaires: "≈ 7 h – 18 h",
+    duree: "30 – 45 min", dureeH: 0.6,
+    moment: "Fin d'après-midi",
+    interet: 3,
+    acces: "Payez à l'escalier est. Tenue correcte, chaussures retirées dans le sanctuaire.",
+    note: "⚠️ Une source indique une entrée gratuite : la plupart des guides mentionnent 1 $.",
+    source: { label: "nomads-travel-guide.com (2026)", url: "https://www.nomads-travel-guide.com/places/wat-phnom/" },
+    maps: "Wat Phnom, Phnom Penh"
+  },
+  {
+    nom: "Marchés de Phnom Penh (et Siem Reap)", emoji: "🛍️", ville: "Phnom Penh / Siem Reap", region: "Phnom Penh",
+    cats: ["Gastronomie", "Culture"],
+    desc: "À Phnom Penh, le marché Central (Psar Thmei, dôme Art déco), le marché Russe (Tuol Tom Poung, artisanat et textiles) et le Vieux Marché. À Siem Reap, l'Old Market. Cuisine de rue à petit prix.",
+    prix: "Gratuit (négociez vos achats)", prixNum: 0,
+    horaires: "Marché Russe ≈ 6 h – 16 h 30/17 h 30 · Psar Thmei ≈ 6 h 30 – 17 h 30 · ⚠️ Old Market de Siem Reap : horaires non confirmés",
+    duree: "1 – 2 h", dureeH: 1.5,
+    moment: "Tôt le matin (fraîcheur, produits frais)",
+    interet: 4,
+    acces: "Espèces en petites coupures. Attention aux pickpockets.",
+    source: { label: "adventuresofjellie.com", url: "https://www.adventuresofjellie.com/cambodia/phnom-penh-markets" },
+    maps: "Russian Market Phnom Penh"
+  },
+
+  // ---------- CÔTE SUD ----------
+  {
+    nom: "Kampot : rivière & parc national de Bokor", emoji: "🛶", ville: "Kampot", region: "Côte sud",
+    cats: ["Nature"],
+    desc: "Petite ville coloniale au bord de la rivière Praek Tuek Chhu. Kayak ou paddle sur la rivière, croisière au coucher du soleil et montée au plateau de Bokor (ancienne station française, cascade de Popokvil).",
+    prix: "Bokor : entrée gratuite selon les guides récents. Cascade de Popokvil ≈ 0,50 $.", prixNum: 0,
+    horaires: "Accès libre en journée",
+    duree: "1 – 2 jours", dureeH: 8,
+    moment: "Bokor le matin (brouillard possible l'après-midi), rivière au coucher du soleil",
+    interet: 4,
+    acces: "Scooter, tuk-tuk ou excursion pour Bokor.",
+    note: "⚠️ Les sources divergent : certaines mentionnent un péage pour les véhicules (2 000 à 10 000 riels).",
+    source: { label: "wanderlustdesigners.com (08/2026)", url: "https://www.wanderlustdesigners.com/bokor-national-park/" },
+    maps: "Bokor National Park"
+  },
+  {
+    nom: "Plantation de poivre de Kampot (La Plantation)", emoji: "🌶️", ville: "Kampot", region: "Côte sud",
+    cats: ["Gastronomie", "Nature"],
+    desc: "Ferme de poivre de Kampot (IGP) : visite guidée gratuite des cultures, dégustation de poivres noir, rouge et blanc, vue sur le lac Secret.",
+    prix: "Visite guidée gratuite (visite avec déjeuner payante)", prixNum: 0,
+    horaires: "9 h – 18 h tous les jours, y compris jours fériés (dernière visite à 16 h)",
+    duree: "1 – 2 h", dureeH: 1.5,
+    moment: "Matin ou fin d'après-midi",
+    interet: 4,
+    acces: "<strong>D'octobre à mars, réservation d'un créneau en ligne obligatoire.</strong> D'avril à septembre, sans réservation.",
+    source: { label: "La Plantation (officiel)", url: "https://laplantation.com/en/visit-us/our-farm-kampot/" },
+    maps: "La Plantation Kampot pepper"
+  },
+  {
+    nom: "Kep : marché aux crabes & île aux Lapins", emoji: "🦀", ville: "Kep", region: "Côte sud",
+    cats: ["Gastronomie", "Plage"],
+    desc: "Station balnéaire tranquille, célèbre pour son crabe au poivre vert de Kampot. Excursion à Koh Tonsay (l'île aux Lapins) pour une journée de plage simple.",
+    prix: "Crabe ≈ 5-10 $. Bateau public pour Koh Tonsay ≈ 8-10 $ aller-retour (bateau privé ≈ 25 $).", prixNum: 10,
+    horaires: "Marché aux crabes ≈ 5 h – 17 h 30 · Bateaux publics vers 9 h et 13 h",
+    duree: "Demi-journée à journée", dureeH: 6,
+    moment: "Déjeuner au marché, coucher de soleil sur le front de mer",
+    interet: 4,
+    acces: "Achetez le billet de bateau au guichet du ponton, pas auprès des rabatteurs.",
+    note: "⚠️ Prix issus de guides et d'avis de voyageurs : vérifiez au ponton.",
+    source: { label: "takeyourbackpack.com (2026)", url: "https://www.takeyourbackpack.com/backpacking-in-cambodia/visit-koh-tonsay-rabbit-island-beach/" },
+    maps: "Kep Crab Market"
+  },
+  {
+    nom: "Sihanoukville → Koh Rong & Koh Rong Samloem", emoji: "🏝️", ville: "Sihanoukville", region: "Côte sud",
+    cats: ["Plage", "Nature"],
+    desc: "Îles aux plages de sable blanc et à l'eau turquoise. Koh Rong est plus animée, Koh Rong Samloem plus calme (Saracen Bay). Snorkeling et plancton bioluminescent la nuit.",
+    prix: "Bateau rapide ≈ 14-20 $ l'aller (le prix varie selon la compagnie et le ponton)", prixNum: 17,
+    horaires: "Premiers départs vers 8 h · Traversée de 30 à 60 min",
+    duree: "2 – 4 jours", dureeH: 48,
+    moment: "Saison sèche (mer plus calme)",
+    interet: 4,
+    acces: "Compagnies principales : GTVC, Island Speed Ferry, Speed Ferry Cambodia. Réservez la veille en haute saison.",
+    note: "⚠️ Tarifs issus de comparateurs (pas de grille officielle). Typhons et mer agitée possibles de juin à novembre.",
+    source: { label: "redbus.com.kh / ferryhopper", url: "https://www.ferryhopper.com/en/ferries/cambodia/koh-rong" },
+    maps: "Koh Rong Island"
+  },
+
+  // ---------- NORD-OUEST ----------
+  {
+    nom: "Battambang : bamboo train & Phnom Sampeau", emoji: "🚃", ville: "Battambang", region: "Nord-ouest",
+    cats: ["Culture", "Nature"],
+    desc: "Deuxième ville du pays, avec son architecture coloniale. Balade en « norry » (train de bambou), temple de Phnom Sampeau, grottes de la mémoire et sortie spectaculaire de millions de chauves-souris au crépuscule.",
+    prix: "Bamboo train ≈ 5 $ · Grottes de Phnom Sampeau ≈ 3-5 $ · Excursion en tuk-tuk ≈ 10-17 $", prixNum: 5,
+    horaires: "Chauves-souris : sortie au coucher du soleil (≈ 17 h 30 – 18 h)",
+    duree: "1 journée", dureeH: 7,
+    moment: "Bamboo train le matin, Phnom Sampeau en fin d'après-midi",
+    interet: 4,
+    acces: "Tuk-tuk à la journée depuis Battambang.",
+    note: "⚠️ La province de Battambang fait partie des provinces citées dans l'avis australien (zone à moins de 50 km de la frontière). La ville elle-même est située plus loin, mais vérifiez les avis aux voyageurs avant de partir. Tarifs issus de guides.",
+    danger: true,
+    source: { label: "thatbackpacker.com / GetYourGuide", url: "https://thatbackpacker.com/bamboo-train-battambang-cambodia-the-good-and-the-ugly/" },
+    maps: "Battambang Bamboo Train"
+  },
+  {
+    nom: "Tonle Sap : villages flottants", emoji: "🛖", ville: "Siem Reap (≈ 30 km)", region: "Siem Reap & Angkor",
+    cats: ["Nature", "Culture"],
+    desc: "Le plus grand lac d'Asie du Sud-Est. À Kampong Phluk, les maisons sur pilotis atteignent jusqu'à 10 m de haut. Balade en barque dans la forêt inondée.",
+    prix: "Bateau Kampong Phluk ≈ 18-20 $/pers. · Barque dans la mangrove ≈ 5-6 $ en supplément", prixNum: 19,
+    horaires: "En journée",
+    duree: "Demi-journée", dureeH: 4,
+    moment: "Fin d'après-midi pour le coucher du soleil sur le lac. En saison des pluies (août → novembre), le niveau de l'eau est le plus haut.",
+    interet: 4,
+    acces: "Les billets pour Chong Kneas sont vendus par Angkor Enterprise. Préférez Kampong Phluk ou Kampong Khleang, moins touristiques.",
+    note: "⚠️ Prix issus d'agences et d'avis. En saison sèche, les pilotis sont visibles mais l'eau peut être trop basse à certains endroits.",
+    source: { label: "Viator / Tripadvisor (2026)", url: "https://www.tripadvisor.com/Attraction_Review-g297390-d13424800-Reviews-Kampong_Phluk_Floating_Village-Siem_Reap_Siem_Reap_Province.html" },
+    maps: "Kampong Phluk Floating Village"
+  },
+  {
+    nom: "Cours de cuisine khmère", emoji: "🍲", ville: "Siem Reap (aussi Phnom Penh, Battambang)", region: "Siem Reap & Angkor",
+    cats: ["Gastronomie", "Culture"],
+    desc: "Visite du marché puis préparation de plats emblématiques : amok de poisson, lok lak, salade de mangue verte, dessert au lait de coco.",
+    prix: "≈ 22-39 $/pers. (jusqu'à environ 60 $ avec visite du marché en privé)", prixNum: 30,
+    horaires: "Généralement le matin ou l'après-midi (sur réservation)",
+    duree: "3 – 4 h", dureeH: 3.5,
+    moment: "Le matin, avec la visite du marché",
+    interet: 4,
+    acces: "Réservation la veille conseillée.",
+    note: "⚠️ Prix issus de plateformes de réservation, variables selon l'école.",
+    source: { label: "cookly.me (2026)", url: "https://www.cookly.me/cooking-class/siem-reap/" },
+    maps: "cooking class Siem Reap"
+  },
+
+  // ---------- NORD-EST ----------
+  {
+    nom: "Mondulkiri : Elephant Valley Project", emoji: "🐘", ville: "Sen Monorom (Mondulkiri)", region: "Nord-est",
+    cats: ["Nature"],
+    desc: "Sanctuaire éthique où des éléphants retraités vivent en semi-liberté dans la forêt, avec la communauté bunong. On marche à leurs côtés et on les observe.",
+    prix: "Demi-journée 60 $ · Journée « Explorer » 75 $ · Journée « Ele Lover » 100 $ (transport, guide et déjeuner inclus)", prixNum: 60,
+    horaires: "Départ à 7 h 30 de Sen Monorom, retour à 14 h ou 17 h 30. Du dimanche au vendredi (Explorer : du lundi au vendredi). Pas de visite le samedi.",
+    duree: "½ à 1 journée", dureeH: 7,
+    moment: "Journée complète",
+    interet: 5,
+    acces: "<strong>Réservation obligatoire par e-mail</strong>, paiement au moins une semaine avant. Assurance avec rapatriement obligatoire. On ne monte pas sur les éléphants, on ne les nourrit pas et on ne se baigne pas avec eux.",
+    source: { label: "Elephant Valley Project (officiel)", url: "https://www.elephantvalleyproject.org/visit-options" },
+    maps: "Elephant Valley Project Sen Monorom"
+  },
+  {
+    nom: "Ratanakiri : lac volcanique Yeak Laom", emoji: "🌋", ville: "Banlung (Ratanakiri)", region: "Nord-est",
+    cats: ["Nature", "Plage"],
+    desc: "Lac de cratère parfaitement rond, entouré de forêt et géré par les communautés autochtones. Baignade dans une eau claire. Cascades (Ka Chanh, Cha Ong) aux alentours.",
+    prix: "≈ 2-3 $ (étrangers)", prixNum: 3,
+    horaires: "En journée",
+    duree: "2 – 3 h", dureeH: 2.5,
+    moment: "Matin (eau calme, peu de monde)",
+    interet: 3,
+    acces: "Paiement à l'entrée du parc. Région éloignée : comptez plusieurs jours pour la visiter.",
+    note: "⚠️ Tarif variable selon les sources (de 1 à 3 $). Aucune grille officielle trouvée.",
+    source: { label: "visitcambodia.co (03/2026)", url: "https://visitcambodia.co/cambodia/travel-guides/things-to-do/yeak-laom-volcanic-lake" },
+    maps: "Yeak Laom Lake Banlung"
+  }
+];
+
+/* =====================================================================
+   LOGIQUE DU SITE (pas besoin de modifier en dessous)
+   ===================================================================== */
+const CLE_STOCKAGE = "guide-cambodge-a-faire";
+let aFaire = new Set();
+try { aFaire = new Set(JSON.parse(localStorage.getItem(CLE_STOCKAGE) || "[]")); } catch (e) {}
+const sauver = () => { try { localStorage.setItem(CLE_STOCKAGE, JSON.stringify([...aFaire])); } catch (e) {} };
+
+const etat = { q: "", cats: new Set(), region: "", tri: "", liste: false };
+const $ = (id) => document.getElementById(id);
+const idDe = (l) => l.nom.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-");
+const sansAccent = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+$("date-maj").textContent = DATE_VERIFICATION;
+
+// Filtres catégorie
+const zoneCats = $("categories");
+CATEGORIES.forEach((c) => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = c; b.setAttribute("aria-pressed", "false");
+  b.onclick = () => {
+    etat.cats.has(c) ? etat.cats.delete(c) : etat.cats.add(c);
+    b.setAttribute("aria-pressed", etat.cats.has(c));
+    afficher();
+  };
+  zoneCats.insertBefore(b, $("btn-liste"));
+});
+
+// Filtre région
+const regions = [...new Set(LIEUX.map((l) => l.region))];
+$("region").innerHTML = '<option value="">Toutes les régions</option>' +
+  regions.map((r) => `<option value="${r}">${r}</option>`).join("");
+
+$("recherche").oninput = (e) => { etat.q = sansAccent(e.target.value.trim()); afficher(); };
+$("region").onchange = (e) => { etat.region = e.target.value; afficher(); };
+$("tri").onchange = (e) => { etat.tri = e.target.value; afficher(); };
+$("btn-liste").onclick = (e) => {
+  etat.liste = !etat.liste;
+  e.currentTarget.setAttribute("aria-pressed", etat.liste);
+  afficher();
+};
+
+// Vider la liste (confirmation intégrée)
+$("reset").onclick = () => { $("reset-confirm").hidden = false; };
+$("reset-non").onclick = () => { $("reset-confirm").hidden = true; };
+$("reset-oui").onclick = () => { aFaire.clear(); sauver(); $("reset-confirm").hidden = true; afficher(); };
+
+function etoiles(n) { return "★".repeat(n) + "☆".repeat(5 - n); }
+
+function carte(l) {
+  const id = idDe(l);
+  const coche = aFaire.has(id);
+  const maps = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(l.maps);
+  return `
+  <article class="fiche${coche ? " cochee" : ""}">
+    <div class="fiche-tete">
+      <div class="emoji" aria-hidden="true">${l.emoji}</div>
+      <div>
+        <h3>${l.nom}</h3>
+        <div class="lieu">📍 ${l.ville}</div>
+      </div>
+    </div>
+    <div class="tags">${l.cats.map((c) => `<span class="tag">${c}</span>`).join("")}</div>
+    <p class="desc">${l.desc}</p>
+    <dl class="infos">
+      <dt>💰 Prix</dt><dd>${l.prix}</dd>
+      <dt>🕐 Horaires</dt><dd>${l.horaires}</dd>
+      <dt>⏳ Durée</dt><dd>${l.duree}</dd>
+      <dt>🌅 Moment</dt><dd>${l.moment}</dd>
+      <dt>⭐ Intérêt</dt><dd><span class="etoiles" aria-label="${l.interet} sur 5">${etoiles(l.interet)}</span></dd>
+      <dt>🎫 Accès</dt><dd>${l.acces}</dd>
+    </dl>
+    ${l.note ? `<div class="note${l.danger ? " danger" : ""}">${l.note}</div>` : ""}
+    <div class="pied-fiche">
+      <label><input type="checkbox" data-id="${id}" ${coche ? "checked" : ""}> À faire</label>
+      <span class="liens">
+        <a href="${maps}" target="_blank" rel="noopener">🗺️ Google Maps</a>
+        <a href="${l.source.url}" target="_blank" rel="noopener" title="${l.source.label}">📚 Source</a>
+      </span>
+    </div>
+  </article>`;
+}
+
+function afficher() {
+  let liste = LIEUX.filter((l) => {
+    if (etat.cats.size && !l.cats.some((c) => etat.cats.has(c))) return false;
+    if (etat.region && l.region !== etat.region) return false;
+    if (etat.liste && !aFaire.has(idDe(l))) return false;
+    if (etat.q) {
+      const texte = sansAccent([l.nom, l.ville, l.region, l.desc, l.cats.join(" ")].join(" "));
+      if (!texte.includes(etat.q)) return false;
+    }
+    return true;
+  });
+
+  const tris = {
+    "prix-asc": (a, b) => a.prixNum - b.prixNum,
+    "prix-desc": (a, b) => b.prixNum - a.prixNum,
+    "duree-asc": (a, b) => a.dureeH - b.dureeH,
+    "duree-desc": (a, b) => b.dureeH - a.dureeH,
+    "interet": (a, b) => b.interet - a.interet
+  };
+  if (tris[etat.tri]) liste = [...liste].sort(tris[etat.tri]);
+
+  $("grille").innerHTML = liste.map(carte).join("");
+  $("vide").hidden = liste.length > 0;
+  $("compteur").textContent = `${liste.length} lieu(x) affiché(s) · ✅ ${aFaire.size} dans ma liste`;
+}
+
+$("grille").addEventListener("change", (e) => {
+  const id = e.target.dataset.id;
+  if (!id) return;
+  e.target.checked ? aFaire.add(id) : aFaire.delete(id);
+  sauver();
+  e.target.closest(".fiche").classList.toggle("cochee", e.target.checked);
+  if (etat.liste) afficher();
+  else $("compteur").textContent = $("compteur").textContent.replace(/✅ \d+/, "✅ " + aFaire.size);
+});
+
+afficher();
+</script>
+</body>
+</html>
